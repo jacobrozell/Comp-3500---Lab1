@@ -188,7 +188,7 @@ ProcessControlBlock *SJF_Scheduler() {
   ProcessControlBlock *selectedProcess = (ProcessControlBlock *) DequeueProcess(READYQUEUE);
   if (selectedProcess) {
     ProcessControlBlock *compareProcess = DequeueProcess(READYQUEUE);
-    ProcessCOntrolBlock *orignalProcess = selectedProcess;
+    ProcessControlBlock *orignalProcess = selectedProcess;
     while (compareProcess) {
       if (compareProcess->RemainingCpuBurstTime < minimumProcess->RemainingCpuBurstTime) {
          EnqueueProcess(READYQUEUE, minimumProcess);
@@ -197,7 +197,7 @@ ProcessControlBlock *SJF_Scheduler() {
       else {
          EnqueueProcess(READYQUEUE, compareProcess);
       }
-      if (originalProcess->ProcessID == compareProcess->ProcessID)) {
+      if (originalProcess->ProcessID == compareProcess->ProcessID) {
          if (minimumProcess->ProcessID != compareProcess->ProcessID) {
             EnqueueProcess(READYQUEUE, compareProcess);
          }
