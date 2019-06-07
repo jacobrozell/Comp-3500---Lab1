@@ -131,14 +131,14 @@ void IO() {
     ProcessToMove = DequeueProcess(WAITINGQUEUE);
     while (ProcessToMove){
       if (Now()>=ProcessToMove->TimeIOBurstDone){
-	ProcessToMove->RemainingCpuBurstTime = ProcessToMove->CpuBurstTime;
-	ProcessToMove->JobStartTime = Now();
-	EnqueueProcess(READYQUEUE,ProcessToMove);
+      	ProcessToMove->RemainingCpuBurstTime = ProcessToMove->CpuBurstTime;
+      	ProcessToMove->JobStartTime = Now();
+      	EnqueueProcess(READYQUEUE,ProcessToMove);
       } else {
-	EnqueueProcess(WAITINGQUEUE,ProcessToMove);
+	      EnqueueProcess(WAITINGQUEUE,ProcessToMove);
       }
       if (ProcessToMove->ProcessID == IDFirstProcess){
-	break;
+	      break;
       }
       ProcessToMove =DequeueProcess(WAITINGQUEUE);
     } // while (ProcessToMove)
@@ -172,8 +172,7 @@ void CPUScheduler(Identifier whichPolicy) {
 ProcessControlBlock *FCFS_Scheduler() {
   /* Select Process based on FCFS */
   // Implement code for FCFS
-  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) NULL;
-
+  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) DequeueProcess(READYQUEUE;
   return(selectedProcess);
 }
 
@@ -186,10 +185,27 @@ ProcessControlBlock *FCFS_Scheduler() {
 \***********************************************************************/
 ProcessControlBlock *SJF_Scheduler() {
   /* Select Process with Shortest Remaining Time*/
-  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) NULL;
-  
-  // Implement code for SJF
- 
+  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) DequeueProcess(READYQUEUE);
+  if (selectedProcess) {
+    ProcessControlBlock *compareProcess = DequeueProcess(READYQUEUE);
+    ProcessCOntrolBlock *orignalProcess = selectedProcess;
+    while (compareProcess) {
+      if (compareProcess->RemainingCpuBurstTime < minimumProcess->RemainingCpuBurstTime) {
+         EnqueueProcess(READYQUEUE, minimumProcess);
+         minimumProcess = compareProcess;
+      }
+      else {
+         EnqueueProcess(READYQUEUE, compareProcess);
+      }
+      if (originalProcess->ProcessID == compareProcess->ProcessID)) {
+         if (minimumProcess->ProcessID != compareProcess->ProcessID) {
+            EnqueueProcess(READYQUEUE, compareProcess);
+         }
+         break;
+      }
+      compareProcess = DequeueProcess(READYQUEUE);
+    }
+  }
   return(selectedProcess);
 }
 
@@ -201,10 +217,7 @@ ProcessControlBlock *SJF_Scheduler() {
  \***********************************************************************/
 ProcessControlBlock *RR_Scheduler() {
   /* Select Process based on RR*/
-  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) NULL;
-
-  // Implement code for RR                                                                                             
-
+  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) DequeueProcess(READYQUEUE);
   return(selectedProcess);
 }
 
