@@ -187,25 +187,25 @@ ProcessControlBlock *SJF_Scheduler() {
   /* Select Process with Shortest Remaining Time*/
   ProcessControlBlock *selectedProcess = (ProcessControlBlock *) DequeueProcess(READYQUEUE);
   if (selectedProcess) {
-    ProcessControlBlock *compareProcess = DequeueProcess(READYQUEUE);
-    ProcessControlBlock *orignalProcess = selectedProcess;
-    while (compareProcess) {
-      if (compareProcess->RemainingCpuBurstTime < minimumProcess->RemainingCpuBurstTime) {
-         EnqueueProcess(READYQUEUE, minimumProcess);
-         minimumProcess = compareProcess;
-      }
+    ProcessControlBlock *newProcess = DequeueProcess(READYQUEUE);
+    ProcessControlBlock *originalProcess = selectedProcess;
+    while (newProcess) {
+      if (newProcess->RemainingCpuBurstTime < selectedProcess->RemainingCpuBurstTime) {
+         EnqueueProcess(READYQUEUE, selectedProcess);
+         selectedProcess = newProcess;
+      } // end if (newProcess->RemainingCpuBurstTime < selectedProcess->RemainingCpuBurstTime)
       else {
-         EnqueueProcess(READYQUEUE, compareProcess);
-      }
-      if (originalProcess->ProcessID == compareProcess->ProcessID) {
-         if (minimumProcess->ProcessID != compareProcess->ProcessID) {
-            EnqueueProcess(READYQUEUE, compareProcess);
-         }
+         EnqueueProcess(READYQUEUE, newProcess);
+      } // end else statement
+      if (originalProcess->ProcessID == newProcess->ProcessID) {
+         if (selectedProcess->ProcessID != newProcess->ProcessID) {
+            EnqueueProcess(READYQUEUE, newProcess);
+         } // end if (selectedProcess->ProcessID != newProcess->ProcessID)
          break;
-      }
-      compareProcess = DequeueProcess(READYQUEUE);
-    }
-  }
+      } // end if (originalProcess->ProcessID == newProcess->ProcessID)
+      newProcess = DequeueProcess(READYQUEUE);
+    } // end while (newProcess)
+  } // end if (selectedProcess)
   return(selectedProcess);
 }
 
@@ -230,7 +230,41 @@ ProcessControlBlock *RR_Scheduler() {
 \***********************************************************************/
 void Dispatcher() {
   double start;
-  //
+  ProcessControlBlock *selectedProcess = DequeueProcess(RUNNINGQUEUE);
+  if (selectedProcess) {
+    if (selectedProcess->TimeInCpu == 0) {
+      selectedProcess->StartCpuTime = Now();
+      NumberofJobs[CBT]++;
+      NumberofJobs[RT]++;
+      SumMetrics[RT] += (Now() - selectedProcess->JobArrivalTime);
+    } // end if (selectedProcess->TimeInCpu == 0)
+    if (selectedProcess->TimeInCpu >= selectedProcess->TotalJobDuration) {
+      selectedProcess->JobExitTime = Now();
+      selectedProcess->state = DONE;
+      SumMetrics[TAT] += (selectedProcess->JobExitTime - selectedProcess->JobArrivalTime);
+      SumMetrics[WT] += (selectedProcess->JobExitTime - selectedProcess->JobArrivalTime - selectedProcess->TimeInWaitQueue
+         - selectedProcess->TimeInCpu - selectedProcess->TimeInJobQueue);
+      EnqueueProcess(EXITQUEUE, selectedProcess);
+      NumberofJobs[THGT]++;
+      NumberofJobs[WT]++;
+    } // end if (selectedProcess->TimeInCpu >= selectedProcess->TotalJobDuration)
+    else {
+      if (PolicyNumber == RR) {
+         selectedProcess->CpuBurstTime = Quantum;
+      } // end if (PolicyNumber == RR)
+      if (selectedProcess->RemainingCpuBurstTime < selectedProcess->CpuBurstTime) {
+         selectedProcess->CpuBurstTime = selectedProcess->RemainingCpuBurstTime;
+      } // end if (selectedProcess->RemainingCpuBurstTime < selectedProcess->CpuBurstTime)
+      if (selectedProcess->TotalJobDuration - selectedProcess->TimeInCpu < selectedProcess->CpuBurstTime) {
+         selectedProcess->CpuBurstTime = selectedProcess->TotalJobDuration - selectedProcess->TimeInCpu;
+      } // end if (selectedProcess->TotalJobDuration - selectedProcess->TimeInCpu < selectedProcess->CpuBurstTime)
+      OnCPU(selectedProcess, selectedProcess->CpuBurstTime);
+      selectedProcess->TimeInCpu += selectedProcess->CpuBurstTime;
+      selectedProcess->RemainingCpuBurstTime = (selectedProcess->CpuBurstTime - selectedProcess->RemainingCpuBurstTime);
+      EnqueueProcess(RUNNINGQUEUE, selectedProcess);
+      SumMetrics[CBT] += selectedProcess->CpuBurstTime;
+    } // end else statement
+  } // end if (selectedProcess)
 }
 
 /***********************************************************************\
