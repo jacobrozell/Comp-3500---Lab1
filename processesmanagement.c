@@ -245,40 +245,74 @@ ProcessControlBlock *RR_Scheduler() {
 void Dispatcher() {
   double start;
   ProcessControlBlock *selectedProcess = DequeueProcess(RUNNINGQUEUE);
+
   if (selectedProcess) {
     if (selectedProcess->TimeInCpu == 0) {
+
+	  // Set the selectedProcessess start time to now
       selectedProcess->StartCpuTime = Now();
+
+	  // Increment the number of jobs 
       NumberofJobs[CBT]++;
       NumberofJobs[RT]++;
+
+	  // Set ready time
       SumMetrics[RT] += (Now() - selectedProcess->JobArrivalTime);
-    } // end if (selectedProcess->TimeInCpu == 0)
+    }
+
+	// Job finishes
     if (selectedProcess->TimeInCpu >= selectedProcess->TotalJobDuration) {
+
+	  // Set exit time and state
       selectedProcess->JobExitTime = Now();
       selectedProcess->state = DONE;
+
+	  // Set Turnaround Time and Waiting Time
       SumMetrics[TAT] += (selectedProcess->JobExitTime - selectedProcess->JobArrivalTime);
       SumMetrics[WT] += (selectedProcess->JobExitTime - selectedProcess->JobArrivalTime - selectedProcess->TimeInWaitQueue
          - selectedProcess->TimeInCpu - selectedProcess->TimeInJobQueue);
+
+	  // Send the process to the exit queue
       EnqueueProcess(EXITQUEUE, selectedProcess);
+
+	  // Increment the number of jobs
       NumberofJobs[THGT]++;
       NumberofJobs[WT]++;
-    } // end if (selectedProcess->TimeInCpu >= selectedProcess->TotalJobDuration)
+    } 
+
     else {
+
+	  // If the policy is a RR, set the quantum
       if (PolicyNumber == RR) {
          selectedProcess->CpuBurstTime = Quantum;
-      } // end if (PolicyNumber == RR)
+      } 
+
+	  // Set the burst time to remaining burst time
       if (selectedProcess->RemainingCpuBurstTime < selectedProcess->CpuBurstTime) {
          selectedProcess->CpuBurstTime = selectedProcess->RemainingCpuBurstTime;
-      } // end if (selectedProcess->RemainingCpuBurstTime < selectedProcess->CpuBurstTime)
+      } 
+
+	  // Set burst time to total job duration - time in cpu
       if (selectedProcess->TotalJobDuration - selectedProcess->TimeInCpu < selectedProcess->CpuBurstTime) {
          selectedProcess->CpuBurstTime = selectedProcess->TotalJobDuration - selectedProcess->TimeInCpu;
-      } // end if (selectedProcess->TotalJobDuration - selectedProcess->TimeInCpu < selectedProcess->CpuBurstTime)
+      } 
+
+	  // Put the process and its cpu burst timme on the CPU
       OnCPU(selectedProcess, selectedProcess->CpuBurstTime);
-      selectedProcess->TimeInCpu += selectedProcess->CpuBurstTime;
-      selectedProcess->RemainingCpuBurstTime = (selectedProcess->CpuBurstTime - selectedProcess->RemainingCpuBurstTime);
-      EnqueueProcess(RUNNINGQUEUE, selectedProcess);
-      SumMetrics[CBT] += selectedProcess->CpuBurstTime;
-    } // end else statement
-  } // end if (selectedProcess)
+
+	  // The burst time is added to the time in the CPU
+      selectedProcess->TimeInCpu += selectedProcess->CpuBurstTime; 
+
+	  // Remaining cpu burst time value is reversed
+      selectedProcess->RemainingCpuBurstTime = (selectedProcess->CpuBurstTime - selectedProcess->RemainingCpuBurstTime); 
+
+	  // Put selected process in the running queue
+      EnqueueProcess(RUNNINGQUEUE, selectedProcess); 
+
+	  // Cpu burst time is added to the sum metrics
+      SumMetrics[CBT] += selectedProcess->CpuBurstTime; 
+    } 
+  } 
 }
 
 /***********************************************************************\
