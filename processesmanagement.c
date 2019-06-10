@@ -184,30 +184,44 @@ ProcessControlBlock *FCFS_Scheduler() {
  * Function: Returns process control block with SJF                    *                                     
 \***********************************************************************/
 ProcessControlBlock *SJF_Scheduler() {
-  /* Select Process with Shortest Remaining Time*/
-  ProcessControlBlock *selectedProcess = (ProcessControlBlock *) DequeueProcess(READYQUEUE);
-  if (selectedProcess) {
-    ProcessControlBlock *newProcess = DequeueProcess(READYQUEUE);
-    ProcessControlBlock *originalProcess = selectedProcess;
-    while (newProcess) {
-      if (newProcess->RemainingCpuBurstTime < selectedProcess->RemainingCpuBurstTime) {
-         EnqueueProcess(READYQUEUE, selectedProcess);
-         selectedProcess = newProcess;
-      } // end if (newProcess->RemainingCpuBurstTime < selectedProcess->RemainingCpuBurstTime)
-      else {
-         EnqueueProcess(READYQUEUE, newProcess);
-      } // end else statement
-      if (originalProcess->ProcessID == newProcess->ProcessID) {
-         if (selectedProcess->ProcessID != newProcess->ProcessID) {
-            EnqueueProcess(READYQUEUE, newProcess);
-         } // end if (selectedProcess->ProcessID != newProcess->ProcessID)
-         break;
-      } // end if (originalProcess->ProcessID == newProcess->ProcessID)
-      newProcess = DequeueProcess(READYQUEUE);
-    } // end while (newProcess)
-  } // end if (selectedProcess)
-  return(selectedProcess);
+	/* Select Process with Shortest Remaining Time*/
+
+	ProcessControlBlock *selectedProcess = (ProcessControlBlock *)DequeueProcess(READYQUEUE);
+	if (selectedProcess) {
+		ProcessControlBlock *compareProcess = DequeueProcess(READYQUEUE);
+
+		// Copy for use later
+		ProcessControlBlock *orignalProcess = selectedProcess;
+		while (compareProcess) {
+
+			// Compare current process with min time pocess
+			if (compareProcess->RemainingCpuBurstTime < minimumProcess->RemainingCpuBurstTime) {
+
+				// Set new minProcess
+				EnqueueProcess(READYQUEUE, minimumProcess);
+				minimumProcess = compareProcess;
+			}
+
+			// Put compareProcess back in readyqueue
+			else {
+				EnqueueProcess(READYQUEUE, compareProcess);
+			}
+
+			// Make sure the processes are the same
+			if (originalProcess->ProcessID == compareProcess->ProcessID) {
+
+				// Make sure the chosen process is the current process
+				if (minimumProcess->ProcessID != compareProcess->ProcessID) {
+					EnqueueProcess(READYQUEUE, compareProcess);
+				}
+				break;
+			}
+			compareProcess = DequeueProcess(READYQUEUE);
+		}
+	}
+	return(selectedProcess);
 }
+
 
 
 /***********************************************************************\                                               
